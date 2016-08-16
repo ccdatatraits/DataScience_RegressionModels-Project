@@ -1,0 +1,69 @@
+---
+title: "Regression Models Course Project"
+author: "Sohail Munir Khan"
+date: "26 July 2015"
+output: pdf_document
+---
+
+##Context
+
+You work for Motor Trend, a magazine about the automobile industry. Looking at a data set of a collection of cars, they are interested in exploring the relationship between a set of variables and miles per gallon (MPG) (outcome). They are particularly interested in the following two questions:
+
+“Is an automatic or manual transmission better for MPG”
+"Quantify the MPG difference between automatic and manual transmissions"
+
+##Executive Summary
+This report provides an analysis and evaluation of the relationship between a set of variables and miles per gallon (MPG)  
+Method included exploratory data analysis and using linear regression to find the most important regressors for our conclusion  
+Findings reveal that along with am (transmisson type automatic or manual), these variables had significant affect: carb + wt + cyl  
+We have more than 85% conclusive results with hightly significant P-value
+
+##Exploratory Data Analysis
+
+- See Appendix for a summary of mtcars data after all variables that should be factors have been updated  
+- Showing the histogram for the MPG variable in Appendix  
+- Showing the boxplot for difference between Automatic(am==0) vs Manual(am==1) Transmission in Appendix. The answer to our first question is that MPG for Manual transmission cars have better MPG  
+```{r, echo=TRUE}
+library(datasets)
+data(mtcars)
+
+mtcars$am <- factor(mtcars$am)
+mtcars$cyl <- factor(mtcars$cyl)
+mtcars$vs <- factor(mtcars$vs)
+mtcars$gear <- factor(mtcars$gear)
+mtcars$carb <- factor(mtcars$carb)
+
+library(ggplot2)
+mpg_mean <- mean(mtcars$mpg)
+ghist <- ggplot(mtcars, aes(x = mpg)) + geom_histogram(fill = "salmon", colour = "black",
+                                                       binwidth = 1)
+ghist <- ghist + geom_vline(xintercept = mpg_mean, size = 2)
+ghist <- ghist + ggtitle(paste("mean = ", mpg_mean))
+
+gtrans <- ggplot(mtcars, aes(am, mpg, fill=am))
+gtrans <- gtrans + geom_boxplot()
+gtrans <- gtrans + scale_fill_discrete(name="Transmission", breaks=c("0", "1"), 
+                                       labels=c("Automatic", "Manual"))
+gtrans <- gtrans + scale_x_discrete(breaks=c("0", "1"), labels=c("Automatic", "Manual"))
+```
+
+##Regression Models
+
+- See Appendix for summary: First we fit a linear model by using am as our first variable and then looking at the rest while interpreting our MPG prediction. We note that there is a 23.88 slope for am0 (intercept) implying that there is a positive relationship between am0 (Automatic) and MPG. am1(Manual) has even higher value since it increases the slope by 1.21. P values for both these are close to 0 but not that significant (still > 0.25). We also note that some other important slopes in our summary are carb then wt then cyl. We will be using only these variables to create another model  
+- See next Appendix summary: With a very high P-value significance (4.63e-08) we deduce that we have a very high correlation from am0 and MPG. And even higher for am1. All other variables are negatively impacting MPG. We have 0.8545 R-squared value for more than 85% significance and a very high P-value for the entire model (2,714e-07)  
+- Next we plot residual values and deduce there is no shape that we can see to go against this model.  
+```{r, echo=FALSE}
+full_fit <- lm(mpg ~ am + . , data = mtcars)
+fit <- lm(mpg ~ am + carb + wt + cyl, data = mtcars)
+```
+
+##Appendix
+```{r, echo=FALSE}
+summary(mtcars)
+ghist
+gtrans
+summary(full_fit)
+summary(fit)
+par(mfrow = c(2,2))
+plot(fit)
+```
